@@ -2,42 +2,74 @@ package algorithms;
 
 import java.awt.Point;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DefaultTeam {
 
     public ArrayList<Point> calculFVS(ArrayList<Point> points, int edgeThreshold) {
-        ArrayList<Point> fvs = new ArrayList<Point>();
-        Map<Point, List<Point>> v = transformationList(points, edgeThreshold);
-        greedyAlgotrithm(v);
-        return new ArrayList<>(v.keySet());
+
+        //init graph
+        Map<Point, List<Point>> graph = transformationList(points, edgeThreshold);
+        // search a cycle
+        List<Point> cycle = findCycle(graph);
+
+        while (cycle != null){
+            // break cycle
+            Point point = maxDegree(cycle, graph);
+            removePoint(point, graph);
+            // search a new cycle
+            cycle = findCycle(graph);
+        }
+
+        return new ArrayList<>(graph.keySet());
     }
 
-    private List<List<Point>> findCycles(Map<Point, List<Point>> pointsToNeighbors) {
-        List<List<Point>> cycles = new ArrayList<>();
-        for (Point point : pointsToNeighbors.keySet()) {
+    private List<Point> findCycle(Map<Point, List<Point>> graph) {
+        //List<Point> cycle = new ArrayList<Point>();
+        for (Point point : graph.keySet()) {
             Set<Point> visited = new HashSet<>();
             List<Point> path = new ArrayList<>();
-            if (findCyclesUtils(point, pointsToNeighbors, visited, path)) {
-                cycles.add(path);
+            if (findCycleUtils(point, null, graph, visited, path)) {
+                return isolateCycle(graph, path);
             }
         }
-        System.out.println("Nb cycles" + cycles.size());
-        return cycles;
+        return null;
     }
 
-    private boolean findCyclesUtils(Point point, Map<Point, List<Point>> pointsToNeighbors, Set<Point> visited, List<Point> path) {
+    private List<Point> isolateCycle(Map<Point, List<Point>> graph, List<Point> path) {
+        System.out.println("taille de path : " + path.size());
+        ArrayList<Point> cycle = new ArrayList<>();
+        Point lastPoint = null;
+        for(int i = 0; i < 3; i++){
+            lastPoint = path.remove(path.size() -1 );
+            cycle.add(lastPoint);
+        }
+        while(path.size() > 0 && !isNeighbour(graph, path.get(0), lastPoint)) {
+            lastPoint = path.remove(path.size() -1 );
+            cycle.add(lastPoint);
+        }
+        return cycle;
+    }
+
+    private boolean isNeighbour(Map<Point, List<Point>> graph, Point p1, Point p2) {
+        return graph.get(p1).contains(p2);
+    }
+
+    private boolean findCycleUtils(Point point, Point previous, Map<Point, List<Point>> graph, Set<Point> visited, List<Point> path) {
         visited.add(point);
         path.add(point);
-        if(pointsToNeighbors.get(point)==null)return false;
-        for (Point neighbor : pointsToNeighbors.get(point)) {
-            if (visited.contains(neighbor)) {
-                if (path.contains(neighbor)) {
-                    return true;
-                }
-            } else {
-                if (findCyclesUtils(neighbor, pointsToNeighbors, visited, path)) {
-                    return true;
+        if(graph.get(point)==null)return false;
+        for (Point neighbor : graph.get(point)) {
+            System.out.println("dehors");
+            if (!neighbor.equals(previous)){
+                System.out.println("dedans");
+                if (visited.contains(neighbor)) {
+                    if (path.contains(neighbor)) {
+                        return true;
+                    }
+                } else {
+                    if (findCycleUtils(neighbor, point, graph, visited, path)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -45,8 +77,8 @@ public class DefaultTeam {
         return false;
     }
 
-    public void greedyAlgotrithm(Map<Point, List<Point>> pointsToNeighbors) {
-        List<List<Point>> cycles = findCycles(pointsToNeighbors);
+    /*public void greedyAlgotrithm(Map<Point, List<Point>> pointsToNeighbors) {
+        List<List<Point>> cycles = findCycle(pointsToNeighbors);
         System.out.println("nb cycles IN : " + cycles.size());
         while(!cycles.isEmpty()) {
             for (List<Point> cycle : cycles) {
@@ -59,7 +91,7 @@ public class DefaultTeam {
             System.out.println(cycles.size());
         }
 
-    }
+    }*/
 
     private void removePoint(Point point, Map<Point, List<Point>> pointsToNeighbors) {
         if (point == null)return;
