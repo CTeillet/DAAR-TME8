@@ -6,21 +6,25 @@ import java.util.*;
 public class DefaultTeam {
 
     public ArrayList<Point> calculFVS(ArrayList<Point> points, int edgeThreshold) {
-
+        ArrayList<Point> res = new ArrayList<Point>();
         //init graph
         Map<Point, List<Point>> graph = transformationList(points, edgeThreshold);
         // search a cycle
         List<Point> cycle = findCycle(graph);
 
+        int c =0;
         while (cycle != null){
+            System.err.println(c);
+            c++;
             // break cycle
             Point point = maxDegree(cycle, graph);
             removePoint(point, graph);
+            res.add(point);
             // search a new cycle
             cycle = findCycle(graph);
         }
 
-        return new ArrayList<>(graph.keySet());
+        return res;
     }
 
     private List<Point> findCycle(Map<Point, List<Point>> graph) {
@@ -59,9 +63,9 @@ public class DefaultTeam {
         path.add(point);
         if(graph.get(point)==null)return false;
         for (Point neighbor : graph.get(point)) {
-            System.out.println("dehors");
+            //System.out.println("dehors");
             if (!neighbor.equals(previous)){
-                System.out.println("dedans");
+                //System.out.println("dedans");
                 if (visited.contains(neighbor)) {
                     if (path.contains(neighbor)) {
                         return true;
