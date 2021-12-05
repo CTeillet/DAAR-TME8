@@ -10,8 +10,7 @@ public class DefaultTeam {
         ArrayList<Point> fvs = new ArrayList<Point>();
         Map<Point, List<Point>> v = transformationList(points, edgeThreshold);
         greedyAlgotrithm(v);
-        ArrayList<Point> res = new ArrayList<>(v.keySet());
-        return res;
+        return new ArrayList<>(v.keySet());
     }
 
     private List<List<Point>> findCycles(Map<Point, List<Point>> pointsToNeighbors) {
@@ -23,12 +22,14 @@ public class DefaultTeam {
                 cycles.add(path);
             }
         }
+        System.out.println("Nb cycles" + cycles.size());
         return cycles;
     }
 
     private boolean findCyclesUtils(Point point, Map<Point, List<Point>> pointsToNeighbors, Set<Point> visited, List<Point> path) {
         visited.add(point);
         path.add(point);
+        if(pointsToNeighbors.get(point)==null)return false;
         for (Point neighbor : pointsToNeighbors.get(point)) {
             if (visited.contains(neighbor)) {
                 if (path.contains(neighbor)) {
@@ -46,6 +47,7 @@ public class DefaultTeam {
 
     public void greedyAlgotrithm(Map<Point, List<Point>> pointsToNeighbors) {
         List<List<Point>> cycles = findCycles(pointsToNeighbors);
+        System.out.println("nb cycles IN : " + cycles.size());
         while(!cycles.isEmpty()) {
             for (List<Point> cycle : cycles) {
                 Point point = maxDegree(cycle, pointsToNeighbors);
@@ -53,6 +55,8 @@ public class DefaultTeam {
                 cycles.stream().filter(c -> c.contains(point)).forEach(c -> c.remove(point));
                 cycles = cycles.stream().filter(c -> c.size()>1).collect(Collectors.toList());
             }
+            //cycles = findCycles(pointsToNeighbors);
+            System.out.println(cycles.size());
         }
 
     }
